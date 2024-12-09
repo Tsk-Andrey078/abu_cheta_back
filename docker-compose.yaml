@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context:
+        ./abu_cheta
+    container_name: abu_cheta
+    volumes:
+      - ./abu_cheta:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - abu_cheta_network
+
+networks:
+  abu_cheta_network:
+    driver: bridge
+
