@@ -39,4 +39,4 @@ class ParticipantSerializer(serializers.ModelSerializer):
 class CriteriosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Criterios
-        fileds = ['id', 'criterion', 'stage', 'created_at']
+        fields = ['id', 'criterion', 'stage', 'created_at']
