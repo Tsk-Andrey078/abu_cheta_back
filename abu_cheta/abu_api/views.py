@@ -131,6 +131,24 @@ class ParticipantsScoresAPIView(APIView):
 
         return Response(response_data)
 
+class ParticipantsAdd(APIView):
+    def post(self, request):
+        serializer = ParticipantSerializer(data = request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            try:
+                new_part = Participant.objects.create(
+                    full_name = data['full_name'],
+                    place_of_study = data['place_of_study'],
+                    teacher_full_name = data['teacher_full_name'],
+                    teacher_phone = data['teacher_phone']
+                )
+                return Response({'Response': 'Object created'}, status=200)
+            except:
+                return Response({'error': 'Something is wrong'}, status=500)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class GetPart(APIView):
     def get(self, request):
         if request.query_params.get('part_id', None):
