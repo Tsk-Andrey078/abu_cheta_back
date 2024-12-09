@@ -28,7 +28,7 @@ class GetUserInfo(APIView):
         })
 
 class SetScoreView(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = SetScoreSerializer(data=request.data)
@@ -57,7 +57,7 @@ class SetScoreView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class ParticipantScoresAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         participant_id = kwargs.get('participant_id')  # Получаем id участника из URL
@@ -106,7 +106,7 @@ class ParticipantScoresAPIView(APIView):
         return Response(response_data)
 
 class ParticipantsScoresAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         stage = request.query_params.get('stage')
@@ -151,7 +151,7 @@ class ParticipantsScoresAPIView(APIView):
         return Response(response_data)
 
 class ParticipantsAdd(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = ParticipantSerializer(data=request.data)
@@ -177,7 +177,7 @@ class ParticipantsAdd(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GetPart(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get(self, request):
         if request.query_params.get('part_id', None):
@@ -190,7 +190,7 @@ class GetPart(APIView):
             return Response(serializer.data)
         
 class GetCriterios(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get(self, request):
         criterios = Criterios.objects.filter(stage = request.query_params.get('stage'))
