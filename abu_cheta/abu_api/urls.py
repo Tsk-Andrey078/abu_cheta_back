@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UserRegistrationView, ParticipantScoresAPIView, ParticipantsScoresAPIView, SetScoreView, GetCriterios, GetPart, ParticipantsAdd
+from .views import UserRegistrationView, ParticipantScoresAPIView, ParticipantsScoresAPIView, SetScoreView, GetCriterios, GetPart, ParticipantsAdd, GetUserInfo
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-registration'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('set-score/', SetScoreView.as_view(), name='Set-score'),
     path('get-part/', GetPart.as_view(), name='Get-Part'),
     path('get-criterios/', GetCriterios.as_view(), name='Get-Criterios'),
+    path('get-user-info/', GetUserInfo.as_view(), name='get-user-info'),
 ]
