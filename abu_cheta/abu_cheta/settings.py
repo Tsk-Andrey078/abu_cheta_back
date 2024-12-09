@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'corsheaders'
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 # Application definition
 CORS_ALLOW_METHODS = [
     'DELETE',
