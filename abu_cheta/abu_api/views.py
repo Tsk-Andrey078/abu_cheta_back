@@ -6,6 +6,7 @@ from .serializer import UserRegistrationSerializer, SetScoreSerializer, Particip
 from .models import Participant, Scores, Criterios, CustomUser
 from rest_framework.exceptions import NotFound
 from django.db import IntegrityError
+from rest_framework.permissions import IsAuthenticated
 
 class UserRegistrationView(APIView):
     def post(self, request, *args, **kwargs):
@@ -15,7 +16,19 @@ class UserRegistrationView(APIView):
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+class GetUserInfo(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            'username': user.username,
+            'fullname': user.fullname,
+        })
+
 class SetScoreView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = SetScoreSerializer(data=request.data)
         if serializer.is_valid():
@@ -43,6 +56,8 @@ class SetScoreView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class ParticipantScoresAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         participant_id = kwargs.get('participant_id')  # Получаем id участника из URL
         stage = request.query_params.get('stage')  # Получаем стадию из query параметров
@@ -90,6 +105,8 @@ class ParticipantScoresAPIView(APIView):
         return Response(response_data)
 
 class ParticipantsScoresAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         stage = request.query_params.get('stage')
         if not stage:
@@ -133,6 +150,8 @@ class ParticipantsScoresAPIView(APIView):
         return Response(response_data)
 
 class ParticipantsAdd(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = ParticipantSerializer(data=request.data)
         if serializer.is_valid():
@@ -157,6 +176,8 @@ class ParticipantsAdd(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GetPart(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         if request.query_params.get('part_id', None):
             part_data = Participant.objects.get(id = request.query_params.get('part_id'))
@@ -168,6 +189,8 @@ class GetPart(APIView):
             return Response(serializer.data)
         
 class GetCriterios(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         criterios = Criterios.objects.filter(stage = request.query_params.get('stage'))
         serializer = CriteriosSerializer(criterios, many=True)
