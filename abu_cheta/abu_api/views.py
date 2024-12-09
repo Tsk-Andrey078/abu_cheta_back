@@ -5,7 +5,8 @@ from rest_framework import status
 from .serializer import UserRegistrationSerializer, SetScoreSerializer, ParticipantSerializer, CriteriosSerializer
 from .models import Participant, Scores, Criterios, CustomUser
 from rest_framework.exceptions import NotFound
- 
+from django.db import IntegrityError
+
 class UserRegistrationView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -133,20 +134,26 @@ class ParticipantsScoresAPIView(APIView):
 
 class ParticipantsAdd(APIView):
     def post(self, request):
-        serializer = ParticipantSerializer(data = request.data)
+        serializer = ParticipantSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
             try:
-                new_part = Participant.objects.create(
-                    full_name = data['full_name'],
-                    place_of_study = data['place_of_study'],
-                    teacher_full_name = data['teacher_full_name'],
-                    teacher_phone = data['teacher_phone']
+                # Создание нового участника
+                Participant.objects.create(
+                    full_name=data['full_name'],
+                    place_of_study=data['place_of_study'],
+                    teacher_full_name=data.get('teacher_full_name'),
+                    teacher_phone=data.get('teacher_phone')
                 )
-                return Response({'Response': 'Object created'}, status=200)
-            except:
-                return Response({'error': 'Something is wrong'}, status=500)
+                return Response({'Response': 'Participant created successfully'}, status=status.HTTP_201_CREATED)
+            except IntegrityError as e:
+                # Обработка ошибок базы данных, например уникальных ограничений
+                return Response({'error': 'Database integrity error', 'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                # Общая обработка ошибок
+                return Response({'error': 'An unexpected error occurred', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
+            # Если данные невалидны
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GetPart(APIView):
