@@ -143,14 +143,13 @@ class ParticipantsScoresAPIView(APIView):
     #permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        # Проверяем, передан ли параметр `stage`
         stage = request.query_params.get('stage')
 
-        # Если `stage` указан, фильтруем оценки по стадии
+        # Фильтруем только те записи, которые нужны
         if stage:
             participants = Participant.objects.prefetch_related(
                 'Participiant__criterion_id', 'Participiant__juri_id'
-            ).filter(Participiant__stage=stage)
+            ).filter(Participiant__stage=stage).distinct()
         else:
             participants = Participant.objects.prefetch_related(
                 'Participiant__criterion_id', 'Participiant__juri_id'
@@ -160,10 +159,8 @@ class ParticipantsScoresAPIView(APIView):
 
         for participant in participants:
             if stage:
-                # Только оценки для указанной стадии
                 participant_scores = participant.Participiant.filter(stage=stage)
             else:
-                # Все оценки участника
                 participant_scores = participant.Participiant.all()
 
             criteries_data = {}
@@ -172,7 +169,6 @@ class ParticipantsScoresAPIView(APIView):
                 criterion_name = score.criterion_id.criterion
                 jury_name = score.juri_id.fullname
 
-                # Если критерий еще не добавлен, инициализируем его
                 if criterion_name not in criteries_data:
                     criteries_data[criterion_name] = {"name": criterion_name, "scores": []}
 
@@ -181,16 +177,15 @@ class ParticipantsScoresAPIView(APIView):
                     "score": int(score.score)
                 })
 
-            # Вычисление общей суммы баллов
-            total_score = sum(
-                int(score.score) for score in participant_scores
-            )
+            total_score = sum(int(score.score) for score in participant_scores)
 
-            response_data.append({
-                "participants": participant.full_name,
-                "criteries": list(criteries_data.values()),
-                "scoreSum": total_score,
-            })
+            # Добавляем только уникальные записи
+            if not any(d['participants'] == participant.full_name for d in response_data):
+                response_data.append({
+                    "participants": participant.full_name,
+                    "criteries": list(criteries_data.values()),
+                    "scoreSum": total_score,
+                })
 
         return Response(response_data)
 
