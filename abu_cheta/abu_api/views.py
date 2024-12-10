@@ -154,7 +154,7 @@ class ParticipantsScoresAPIView(APIView):
         else:
             participants = Participant.objects.prefetch_related(
                 'Participiant__criterion_id', 'Participiant__juri_id'
-            ).all()
+            ).distinct()
 
         response_data = []
 
