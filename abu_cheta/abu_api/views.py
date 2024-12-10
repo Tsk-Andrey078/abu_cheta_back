@@ -56,6 +56,40 @@ class SetScoreView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+    def put(self, request):
+        try:
+            # Получаем объект Score по ID
+            score_id = request.query_params.get('score_id')
+            score = Scores.objects.get(id=score_id)
+        except Scores.DoesNotExist:
+            return Response({"error": "Score not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SetScoreSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            try:
+                # Обновление данных
+                score.stage = data["stage"]
+                score.score = data["score"]
+                score.participiant = Participant.objects.get(id=data["participant_id"])
+                score.juri_id = CustomUser.objects.get(id=data["juri_id"])
+                score.criterion_id = Criterios.objects.get(id=data["criterion_id"])
+                score.save()
+
+                return Response({"success": "Score updated successfully"}, status=status.HTTP_200_OK)
+            except (Participant.DoesNotExist, CustomUser.DoesNotExist, Criterios.DoesNotExist):
+                return Response({"error": "Invalid data provided"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def get(self, request):
+        score_id = request.query_params.get('score_id')
+        try:
+            score = Scores.objects.get(id=score_id)
+            return Response(True, status=200)
+        except (Scores.DoesNotExist):
+            return Response(False, status=400)
+        
 class ParticipantScoresAPIView(APIView):
     #permission_classes = [IsAuthenticated]
 
@@ -109,19 +143,29 @@ class ParticipantsScoresAPIView(APIView):
     #permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
+        # Проверяем, передан ли параметр `stage`
         stage = request.query_params.get('stage')
-        if not stage:
-            return Response({"error": "Stage is required"}, status=400)
 
-        # Получение всех участников и их оценок для указанной стадии
-        participants = Participant.objects.prefetch_related(
-            'Participiant__criterion_id', 'Participiant__juri_id'
-        ).all()
+        # Если `stage` указан, фильтруем оценки по стадии
+        if stage:
+            participants = Participant.objects.prefetch_related(
+                'Participiant__criterion_id', 'Participiant__juri_id'
+            ).filter(Participiant__stage=stage)
+        else:
+            participants = Participant.objects.prefetch_related(
+                'Participiant__criterion_id', 'Participiant__juri_id'
+            ).all()
 
         response_data = []
 
         for participant in participants:
-            participant_scores = participant.Participiant.filter(stage=stage)
+            if stage:
+                # Только оценки для указанной стадии
+                participant_scores = participant.Participiant.filter(stage=stage)
+            else:
+                # Все оценки участника
+                participant_scores = participant.Participiant.all()
+
             criteries_data = {}
 
             for score in participant_scores:
